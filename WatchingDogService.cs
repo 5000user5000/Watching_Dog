@@ -40,7 +40,7 @@ namespace Watching_Dog
 
             // char lastAddr = e.FullPath[-1];//取最後一個字元,會出錯
             //int lastIndex = e.FullPath.Length - 1;
-]
+
 
             //Directory.CreateDirectory(@"D:\ForWatchingDog\changed");
             // File.AppendAllText($"{serviceLocation}\\log.txt", "dir created!\n");
