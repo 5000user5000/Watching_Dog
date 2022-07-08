@@ -26,7 +26,7 @@ namespace Watching_Dog
             fileSystemWatcher = new FileSystemWatcher(monitorPath); 
            
 
-
+           
 
             //EventLog.WriteEntry("Watching Dog Service Started");
 
@@ -50,7 +50,7 @@ namespace Watching_Dog
             fileSystemWatcher.IncludeSubdirectories = true; */
 
             var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location); // c:\\Program Files\\Folder To Watch\\Watching_Dog.exe (因為其他人的檔案處會不同,用此得到現在位置)
-            File.AppendAllText($"{serviceLocation}\\log.txt", "service started!\n"); //本來沒有這個log.txt,這裡生成,並把msg的東西寫入
+            File.AppendAllText($"{serviceLocation}\\log.txt", $"service started! {DateTime.Now.ToShortTimeString()}\n"); //本來沒有這個log.txt,這裡生成,並把msg的東西寫入
 
             string dirName = Path.GetFileName(monitorPath);
             string backupPath = @"D:\ForWatchingDog\backup\" + dirName;//這樣能把root的檔案夾也複製,如果有多個要監控的檔案夾,備份的東西才不會混在一起
@@ -158,7 +158,7 @@ namespace Watching_Dog
         {
             var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             
-            File.AppendAllText($"{serviceLocation}\\log.txt", "service stopped!\n");
+            File.AppendAllText($"{serviceLocation}\\log.txt", $"service stopped! {DateTime.Now.ToShortTimeString()}\n");
              fileSystemWatcher.Dispose();//釋放資源
             //EventLog.WriteEntry("Watching Dog Service Stopped");
         }
@@ -182,7 +182,7 @@ namespace Watching_Dog
                 /* 上面3個參數分別是發件人地址（可以隨便寫），發件人姓名，編碼*/
                 msg.Subject = "警告";//郵件標題
                 msg.SubjectEncoding = System.Text.Encoding.UTF8;//郵件標題編碼
-                msg.Body = @"您所監控的檔案已經變動,變動的放在 D:\ForWatchingDog\changed\ 裡面,原檔案也已經幫您復原完畢"; //郵件內容
+                msg.Body = $"您所監控的檔案已經在{DateTime.Now.ToShortTimeString()}的時候變動,變動的放在 D:\\ForWatchingDog\\changed\\ 裡面,原檔案也已經幫您復原完畢"; //郵件內容
                 msg.BodyEncoding = System.Text.Encoding.UTF8;//郵件內容編碼 
                 //msg.Attachments.Add(new Attachment(@"D:\test2.docx"));  //附件
                 msg.IsBodyHtml = true;//是否是HTML郵件 
