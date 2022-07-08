@@ -73,12 +73,14 @@ namespace Watching_Dog
          private void DirectoryChanged(object sender, FileSystemEventArgs e)
         {
             //避免重複觸發事件
+
             var watcher = sender as FileSystemWatcher;
             watcher.EnableRaisingEvents = false;
             
             
             var msg = $"{e.ChangeType} - {e.FullPath} {System.Environment.NewLine}";
             var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location); // c:\\Program Files\\Folder To Watch\\Watching_Dog.exe (因為其他人的檔案處會不同,用此得到現在位置)
+            File.AppendAllText($"{serviceLocation}\\log.txt", "--------Start the change func!\n");
             File.AppendAllText($"{serviceLocation}\\log.txt", msg); //本來沒有這個log.txt,這裡生成,並把msg的東西寫入
 
             //char lastAddr = e.FullPath[-1];//取最後一個字元,會出錯
@@ -100,26 +102,36 @@ namespace Watching_Dog
             string fileLocation = @"D:\ForWatchingDog\changed\" + filename;//file要移動到的新地點
             string backupPath = @"D:\ForWatchingDog\backup\" + getLastDirName(e.FullPath);
 
-             File.AppendAllText($"{serviceLocation}\\log.txt", $"backup dir = {backupPath}\n");
+            // File.AppendAllText($"{serviceLocation}\\log.txt", $"backup dir = {backupPath}\n"); //檢查備份路徑用
 
             string changeType =$"{e.ChangeType}";//這樣轉成string,不能直接e.ChangeType
          
             //移出變動的地方並復原回去
             if (Directory.Exists(e.FullPath) && changeType == "Renamed" )
             {
-                Directory.Move(e.FullPath, fileLocation);//移動目錄到指定地點
                 
+                Directory.Move(e.FullPath, fileLocation);//移動目錄到指定地點
+                FileSystem.CopyDirectory(backupPath, e.FullPath);
 
+            }
+            else if(Directory.Exists(e.FullPath) && changeType == "Created")//當被多新增檔案夾就直接移開就好
+            {
+                Directory.Move(e.FullPath, fileLocation);   
             }
             else if(File.Exists(e.FullPath) )
             {
-                 
-                 File.Move(e.FullPath, fileLocation);//移動檔案 System.IO的功能
+                
+                
+                
+                File.Move(e.FullPath, fileLocation);//移動檔案 System.IO的功能
+
                 //以下是復原方式
-                File.Create(e.FullPath);//先重建一個
-                if( File.Exists(backupPath) )//因為可能是新增檔案,那麼backup就沒有可以用的
+                
+                if ( File.Exists(backupPath) )//因為可能是新增檔案,那麼backup就沒有可以用的
                 {
-                    File.Copy(backupPath, e.FullPath);//複製檔案 System.IO的功能
+                    
+                    //File.Create(e.FullPath);//只有修改or刪除檔案時,才要重建一個 copy似乎本身就有這功能(當指定路徑沒東西時)
+                    File.Copy(backupPath, e.FullPath,true);//複製檔案 System.IO的功能 //增加true 表示能夠覆蓋同名檔案
                 }
                 
                 File.AppendAllText($"{serviceLocation}\\log.txt", "recovery successfully!\n");
@@ -127,8 +139,17 @@ namespace Watching_Dog
 
                 
             }
+            else if(changeType == "Deleted")//如果被刪除的話
+            {
+                if (File.Exists(backupPath))
+                {               
+                    File.Copy(backupPath, e.FullPath, true);
+                }
 
 
+            }
+
+            File.AppendAllText($"{serviceLocation}\\log.txt", "--------End the change func!\n");
             watcher.EnableRaisingEvents = true; //復原
             // Console.WriteLine("Change!"); 這個沒法用
         }
