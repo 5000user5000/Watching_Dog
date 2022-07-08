@@ -11,35 +11,43 @@ namespace Watching_Dog
     {
 
         FileSystemWatcher fileSystemWatcher;
-        DelayFileSystemWatcher delayFileSystemWatcher;  
+        //DelayFileSystemWatcher delayFileSystemWatcher;  
 
         public WatchingDogService()
         {
             InitializeComponent();
         }
 
-       static string monitorPath = "D:\\abcd";//要監管的地方 設成全域變數
+       static string monitorPath = "D:\\abcd";//要監管的地方 設成全域變數 必須用static不然會錯誤
 
         protected override void OnStart(string[] args)
         {
             //string monitorPath = "D:\\abcd";//要監管的地方
-            fileSystemWatcher = new FileSystemWatcher(monitorPath);
-            delayFileSystemWatcher = new DelayFileSystemWatcher(monitorPath, fileSystemWatcher_Changed, 1500);
+            fileSystemWatcher = new FileSystemWatcher(monitorPath); 
+           
 
 
 
             //EventLog.WriteEntry("Watching Dog Service Started");
 
-            fileSystemWatcher = new FileSystemWatcher(monitorPath)
+           fileSystemWatcher = new FileSystemWatcher(monitorPath)
             {
                 EnableRaisingEvents = true,
                 IncludeSubdirectories = true
             };
-
-            fileSystemWatcher.Created += DirectoryChanged;
-            fileSystemWatcher.Deleted += DirectoryChanged;
-            fileSystemWatcher.Changed += DirectoryChanged;
-            fileSystemWatcher.Renamed += DirectoryChanged;
+            
+             fileSystemWatcher.Created += DirectoryChanged;
+             fileSystemWatcher.Deleted += DirectoryChanged;
+             fileSystemWatcher.Changed += DirectoryChanged;
+             fileSystemWatcher.Renamed += DirectoryChanged;
+            //換個寫法試試
+           /* fileSystemWatcher.Changed += new FileSystemEventHandler(DirectoryChanged);
+            fileSystemWatcher.Created += new FileSystemEventHandler(DirectoryChanged);
+            fileSystemWatcher.Deleted += new FileSystemEventHandler(DirectoryChanged);
+            fileSystemWatcher.Renamed += new RenamedEventHandler(DirectoryChanged);
+            fileSystemWatcher.EnableRaisingEvents = true;
+            fileSystemWatcher.NotifyFilter =  NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName  | NotifyFilters.Size | NotifyFilters.LastWrite;//會檢查哪些
+            fileSystemWatcher.IncludeSubdirectories = true; */
 
             var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location); // c:\\Program Files\\Folder To Watch\\Watching_Dog.exe (因為其他人的檔案處會不同,用此得到現在位置)
             File.AppendAllText($"{serviceLocation}\\log.txt", "service started!\n"); //本來沒有這個log.txt,這裡生成,並把msg的東西寫入
@@ -57,58 +65,18 @@ namespace Watching_Dog
 
         }
 
-
-        private static void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) //
-        {
-            var msg = $"{e.ChangeType} - {e.FullPath} {System.Environment.NewLine}";
-            var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location); 
-            File.AppendAllText($"{serviceLocation}\\log.txt", msg); 
-
-            //寄給 此信箱,警告檔案變動
-            // SendAutomatedEmail("chouwei463@gmail.com"); //這句還是放在移出還原那裏較好,因為當移動時,也算onChange,會再記一次mail
-
-            //如果不存在此檔案就創一個
-            if (!System.IO.Directory.Exists(@"D:\ForWatchingDog\changed"))
-            {
-                Directory.CreateDirectory(@"D:\ForWatchingDog\changed");
-                File.AppendAllText($"{serviceLocation}\\log.txt", "dir created!\n");
-            }
-
-            string filename = Path.GetFileName(e.FullPath);
-            string fileLocation = @"D:\ForWatchingDog\changed\" + filename;//file要移動到的新地點
-            string backupPath = @"D:\ForWatchingDog\backup\" + getLastDirName(e.FullPath); //getLastDirName func得有static屬性,不然得在這建立一個getLastDirName物件
-
-            File.AppendAllText($"{serviceLocation}\\log.txt", $"backup dir = {backupPath}\n");
-
-            string changeType = $"{e.ChangeType}";//這樣轉成string,不能直接e.ChangeType
-
-            //移出變動的地方並復原回去
-            if (Directory.Exists(e.FullPath) && changeType == "Renamed")
-            {
-                Directory.Move(e.FullPath, fileLocation);//移動目錄到指定地點
-
-
-            }
-            else if (File.Exists(e.FullPath))
-            {
-
-                File.Move(e.FullPath, fileLocation);//移動檔案 System.IO的功能
-                //以下是復原方式
-                File.Create(e.FullPath);//先重建一個
-                if (File.Exists(backupPath))//因為可能是新增檔案,那麼backup就沒有可以用的
-                {
-                    File.Copy(backupPath, e.FullPath);//複製檔案 System.IO的功能
-                }
-
-                File.AppendAllText($"{serviceLocation}\\log.txt", "recovery successfully!\n");
-            }
-        }
+       
         
 
       
 
-        private void DirectoryChanged(object sender, FileSystemEventArgs e)
+         private void DirectoryChanged(object sender, FileSystemEventArgs e)
         {
+            //避免重複觸發事件
+            var watcher = sender as FileSystemWatcher;
+            watcher.EnableRaisingEvents = false;
+            
+            
             var msg = $"{e.ChangeType} - {e.FullPath} {System.Environment.NewLine}";
             var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location); // c:\\Program Files\\Folder To Watch\\Watching_Dog.exe (因為其他人的檔案處會不同,用此得到現在位置)
             File.AppendAllText($"{serviceLocation}\\log.txt", msg); //本來沒有這個log.txt,這裡生成,並把msg的東西寫入
@@ -160,8 +128,8 @@ namespace Watching_Dog
                 
             }
 
-            
 
+            watcher.EnableRaisingEvents = true; //復原
             // Console.WriteLine("Change!"); 這個沒法用
         }
 
@@ -170,7 +138,7 @@ namespace Watching_Dog
             var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             
             File.AppendAllText($"{serviceLocation}\\log.txt", "service stopped!\n");
-            fileSystemWatcher.Dispose();//釋放資源
+             fileSystemWatcher.Dispose();//釋放資源
             //EventLog.WriteEntry("Watching Dog Service Stopped");
         }
 
