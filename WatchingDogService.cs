@@ -11,22 +11,26 @@ namespace Watching_Dog
     {
 
         FileSystemWatcher fileSystemWatcher;
+        DelayFileSystemWatcher delayFileSystemWatcher;  
 
         public WatchingDogService()
         {
             InitializeComponent();
         }
 
-        string monitorPath = "D:\\abcd";//要監管的地方 設成全域變數
-       
+       static string monitorPath = "D:\\abcd";//要監管的地方 設成全域變數
 
         protected override void OnStart(string[] args)
         {
-
-            
-            //EventLog.WriteEntry("Watching Dog Service Started");
             //string monitorPath = "D:\\abcd";//要監管的地方
-            fileSystemWatcher = new FileSystemWatcher("D:\\abcd")
+            fileSystemWatcher = new FileSystemWatcher(monitorPath);
+            delayFileSystemWatcher = new DelayFileSystemWatcher(monitorPath, fileSystemWatcher_Changed, 1500);
+
+
+
+            //EventLog.WriteEntry("Watching Dog Service Started");
+
+            fileSystemWatcher = new FileSystemWatcher(monitorPath)
             {
                 EnableRaisingEvents = true,
                 IncludeSubdirectories = true
@@ -53,6 +57,56 @@ namespace Watching_Dog
 
         }
 
+
+        private static void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) //
+        {
+            var msg = $"{e.ChangeType} - {e.FullPath} {System.Environment.NewLine}";
+            var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location); 
+            File.AppendAllText($"{serviceLocation}\\log.txt", msg); 
+
+            //寄給 此信箱,警告檔案變動
+            // SendAutomatedEmail("chouwei463@gmail.com"); //這句還是放在移出還原那裏較好,因為當移動時,也算onChange,會再記一次mail
+
+            //如果不存在此檔案就創一個
+            if (!System.IO.Directory.Exists(@"D:\ForWatchingDog\changed"))
+            {
+                Directory.CreateDirectory(@"D:\ForWatchingDog\changed");
+                File.AppendAllText($"{serviceLocation}\\log.txt", "dir created!\n");
+            }
+
+            string filename = Path.GetFileName(e.FullPath);
+            string fileLocation = @"D:\ForWatchingDog\changed\" + filename;//file要移動到的新地點
+            string backupPath = @"D:\ForWatchingDog\backup\" + getLastDirName(e.FullPath); //getLastDirName func得有static屬性,不然得在這建立一個getLastDirName物件
+
+            File.AppendAllText($"{serviceLocation}\\log.txt", $"backup dir = {backupPath}\n");
+
+            string changeType = $"{e.ChangeType}";//這樣轉成string,不能直接e.ChangeType
+
+            //移出變動的地方並復原回去
+            if (Directory.Exists(e.FullPath) && changeType == "Renamed")
+            {
+                Directory.Move(e.FullPath, fileLocation);//移動目錄到指定地點
+
+
+            }
+            else if (File.Exists(e.FullPath))
+            {
+
+                File.Move(e.FullPath, fileLocation);//移動檔案 System.IO的功能
+                //以下是復原方式
+                File.Create(e.FullPath);//先重建一個
+                if (File.Exists(backupPath))//因為可能是新增檔案,那麼backup就沒有可以用的
+                {
+                    File.Copy(backupPath, e.FullPath);//複製檔案 System.IO的功能
+                }
+
+                File.AppendAllText($"{serviceLocation}\\log.txt", "recovery successfully!\n");
+            }
+        }
+        
+
+      
+
         private void DirectoryChanged(object sender, FileSystemEventArgs e)
         {
             var msg = $"{e.ChangeType} - {e.FullPath} {System.Environment.NewLine}";
@@ -62,7 +116,9 @@ namespace Watching_Dog
             //char lastAddr = e.FullPath[-1];//取最後一個字元,會出錯
 
             //寄給 此信箱,警告檔案變動
-           // SendAutomatedEmail("client email"); //這句還是放在移出還原那裏較好,因為當移動時,也算onChange,會再記一次mail
+            // SendAutomatedEmail("chouwei463@gmail.com"); //這句還是放在移出還原那裏較好,因為當移動時,也算onChange,會再記一次mail
+     
+
 
 
             //如果不存在此檔案就創一個
@@ -74,9 +130,9 @@ namespace Watching_Dog
 
             string filename = Path.GetFileName(e.FullPath);
             string fileLocation = @"D:\ForWatchingDog\changed\" + filename;//file要移動到的新地點
-            //string backupPath = @"D:\ForWatchingDog\backup\" + getLastDirName(e.FullPath);
+            string backupPath = @"D:\ForWatchingDog\backup\" + getLastDirName(e.FullPath);
 
-           // File.AppendAllText($"{serviceLocation}\\log.txt", $"backup dir = {backupPath}\n");
+             File.AppendAllText($"{serviceLocation}\\log.txt", $"backup dir = {backupPath}\n");
 
             string changeType =$"{e.ChangeType}";//這樣轉成string,不能直接e.ChangeType
          
@@ -89,28 +145,32 @@ namespace Watching_Dog
             }
             else if(File.Exists(e.FullPath) )
             {
-
+                 
                  File.Move(e.FullPath, fileLocation);//移動檔案 System.IO的功能
                 //以下是復原方式
-                /*File.Create(e.FullPath);//先重建一個
-                if(File.Exists(backupPath) )//因為可能是新增檔案,那麼backup就沒有可以用的
+                File.Create(e.FullPath);//先重建一個
+                if( File.Exists(backupPath) )//因為可能是新增檔案,那麼backup就沒有可以用的
                 {
-                   // File.Copy(backupPath, e.FullPath);//複製檔案 System.IO的功能
-                }*/
+                    File.Copy(backupPath, e.FullPath);//複製檔案 System.IO的功能
+                }
                 
                 File.AppendAllText($"{serviceLocation}\\log.txt", "recovery successfully!\n");
+
+
+                
             }
 
-
             
+
             // Console.WriteLine("Change!"); 這個沒法用
         }
 
         protected override void OnStop()
         {
             var serviceLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            //var msg = $"random - stopped {System.Environment.NewLine}";
+            
             File.AppendAllText($"{serviceLocation}\\log.txt", "service stopped!\n");
+            fileSystemWatcher.Dispose();//釋放資源
             //EventLog.WriteEntry("Watching Dog Service Stopped");
         }
 
@@ -140,7 +200,7 @@ namespace Watching_Dog
                 //msg.Priority = MailPriority.High;//郵件優先級 
 
                 SmtpClient client = new SmtpClient();
-                client.Credentials = new System.Net.NetworkCredential("your gmail", "your gmail application pwd"); //這裡要填正確的帳號跟密碼
+                client.Credentials = new System.Net.NetworkCredential("yeey63661@gmail.com", "tybtpnelcdfqagcd"); //這裡要填正確的帳號跟(應用程式)密碼
                 client.Host = "smtp.gmail.com"; //設定smtp Server
                 client.Port = 25; //設定Port
                 client.EnableSsl = true; //gmail預設開啟驗證
@@ -159,7 +219,7 @@ namespace Watching_Dog
         }
 
         //用backup復原檔案時所需
-        public string getLastDirName(string path) //如監控檔案是 D:\abcd\ddk     path是 D:\abcd\ddk\hello\text.txt  回傳 ddk\hello\text.txt
+        public static string getLastDirName(string path) //如監控檔案是 D:\abcd\ddk     path是 D:\abcd\ddk\hello\text.txt  回傳 ddk\hello\text.txt
         {
             string monitorDir = Path.GetDirectoryName( monitorPath );//取得監視檔案的dir
             int len = monitorDir.Length;
