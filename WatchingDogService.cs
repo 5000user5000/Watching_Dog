@@ -86,7 +86,7 @@ namespace Watching_Dog
             //char lastAddr = e.FullPath[-1];//取最後一個字元,會出錯
 
             //寄給 此信箱,警告檔案變動
-            // SendAutomatedEmail("xxx@gmail.com"); //這句還是放在移出還原那裏較好,因為當移動時,也算onChange,會再記一次mail
+            // SendAutomatedEmail("yyy@gmail.com"); //這句還是放在移出還原那裏較好,因為當移動時,也算onChange,會再記一次mail
      
 
 
@@ -111,14 +111,30 @@ namespace Watching_Dog
             {
                 
                 Directory.Move(e.FullPath, fileLocation);//移動目錄到指定地點
-                FileSystem.CopyDirectory(backupPath, e.FullPath);
+                
+                string upDir = Path.GetDirectoryName(backupPath); //取得其父檔案
+                string[] dirs = Directory.GetDirectories(upDir); 
+                string nowDir = Path.GetDirectoryName(e.FullPath);
+                foreach (var dir in dirs)
+                {
+                    
+                    string DirName = Path.GetFileName(dir);
+                    string newDirLocation = nowDir +'\\'+ DirName;//file要移動到的新地點
+
+                    File.AppendAllText($"{serviceLocation}\\log.txt", $"check this dir = {dir} vs new path {newDirLocation}\n");
+                    if (!Directory.Exists(newDirLocation))
+                    {
+                        FileSystem.CopyDirectory(dir, newDirLocation);
+                        File.AppendAllText($"{serviceLocation}\\log.txt", $"recovery\n");
+                    }
+                }
 
             }
             else if(Directory.Exists(e.FullPath) && changeType == "Created")//當被多新增檔案夾就直接移開就好
             {
                 Directory.Move(e.FullPath, fileLocation);   
             }
-            else if(File.Exists(e.FullPath) )
+            else if(File.Exists(e.FullPath) && changeType != "Renamed")
             {
                 
                 
@@ -145,7 +161,33 @@ namespace Watching_Dog
                 {               
                     File.Copy(backupPath, e.FullPath, true);
                 }
+                else if (Directory.Exists(backupPath))
+                {
+                    FileSystem.CopyDirectory(backupPath, e.FullPath, true);
+                }
 
+
+            }
+            else if(changeType == "Renamed")//這裡是指file部分
+            {
+                File.Move(e.FullPath, fileLocation);//移動目錄到指定地點
+
+                string upDir = Path.GetDirectoryName(backupPath); //取得其父檔案
+                string[] files = Directory.GetFiles(upDir);
+                string nowDir = Path.GetDirectoryName(e.FullPath);
+                foreach (var file in files)
+                {
+
+                    string nowFileName = Path.GetFileName(file);
+                    string newFileLocation = nowDir + '\\' + nowFileName;//file要移動到的新地點
+
+                    File.AppendAllText($"{serviceLocation}\\log.txt", $"check this file = {file} vs new path {newFileLocation}\n");
+                    if (!File.Exists(newFileLocation))
+                    {
+                        File.Copy(file, newFileLocation);
+                        File.AppendAllText($"{serviceLocation}\\log.txt", $"recovery\n");
+                    }
+                }
 
             }
 
@@ -189,7 +231,7 @@ namespace Watching_Dog
                 //msg.Priority = MailPriority.High;//郵件優先級 
 
                 SmtpClient client = new SmtpClient();
-                client.Credentials = new System.Net.NetworkCredential("xxx@gmail.com", "xxxxxx"); //這裡要填正確的帳號跟(應用程式)密碼
+                client.Credentials = new System.Net.NetworkCredential("xxx@gmail.com", "wwwwww"); //這裡要填正確的帳號跟(應用程式)密碼
                 client.Host = "smtp.gmail.com"; //設定smtp Server
                 client.Port = 25; //設定Port
                 client.EnableSsl = true; //gmail預設開啟驗證
