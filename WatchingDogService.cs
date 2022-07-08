@@ -86,7 +86,7 @@ namespace Watching_Dog
             //char lastAddr = e.FullPath[-1];//取最後一個字元,會出錯
 
             //寄給 此信箱,警告檔案變動
-            // SendAutomatedEmail("chouwei463@gmail.com"); //這句還是放在移出還原那裏較好,因為當移動時,也算onChange,會再記一次mail
+            // SendAutomatedEmail("xxx@gmail.com"); //這句還是放在移出還原那裏較好,因為當移動時,也算onChange,會再記一次mail
      
 
 
@@ -178,7 +178,7 @@ namespace Watching_Dog
                 //msg.CC.Add("c@c.com");
                 //msg.CC.Add("c@c.com");可以抄送副本給多人 
                 //這裡可以隨便填，不是很重要
-                msg.From = new MailAddress("yeey63661@gmail.com", "Watching Dog系統", System.Text.Encoding.UTF8);
+                msg.From = new MailAddress("xxx@gmail.com", "Watching Dog系統", System.Text.Encoding.UTF8);
                 /* 上面3個參數分別是發件人地址（可以隨便寫），發件人姓名，編碼*/
                 msg.Subject = "警告";//郵件標題
                 msg.SubjectEncoding = System.Text.Encoding.UTF8;//郵件標題編碼
@@ -189,7 +189,7 @@ namespace Watching_Dog
                 //msg.Priority = MailPriority.High;//郵件優先級 
 
                 SmtpClient client = new SmtpClient();
-                client.Credentials = new System.Net.NetworkCredential("yeey63661@gmail.com", "tybtpnelcdfqagcd"); //這裡要填正確的帳號跟(應用程式)密碼
+                client.Credentials = new System.Net.NetworkCredential("xxx@gmail.com", "xxxxxx"); //這裡要填正確的帳號跟(應用程式)密碼
                 client.Host = "smtp.gmail.com"; //設定smtp Server
                 client.Port = 25; //設定Port
                 client.EnableSsl = true; //gmail預設開啟驗證
