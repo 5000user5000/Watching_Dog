@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watching_Dog", "Watching_Dog\Watching_Dog.csproj", "{EF3DC277-9661-4302-B750-F433AE8C4D33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GUI", "GUI\GUI.csproj", "{B4F48B2B-2EDA-4D0B-BCD4-1E11945B5F54}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF3DC277-9661-4302-B750-F433AE8C4D33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF3DC277-9661-4302-B750-F433AE8C4D33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF3DC277-9661-4302-B750-F433AE8C4D33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF3DC277-9661-4302-B750-F433AE8C4D33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4F48B2B-2EDA-4D0B-BCD4-1E11945B5F54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4F48B2B-2EDA-4D0B-BCD4-1E11945B5F54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4F48B2B-2EDA-4D0B-BCD4-1E11945B5F54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4F48B2B-2EDA-4D0B-BCD4-1E11945B5F54}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {46E6F4AB-81DF-46FE-844D-0FD85525BFE2}
+	EndGlobalSection
+EndGlobal
