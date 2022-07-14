@@ -7,3 +7,4 @@ GUI先開啟,並把你要監控的檔案夾路徑以及你的信箱輸入,按下
 注意GUI只能寄出一次,第二次寄出service就不會讀取了。除非你先把Watching Dog Service關掉,並重新開GUI才行。
 
 [練習pipe用的來源網址](http://www.codebaoku.com/it-csharp/it-csharp-203094.html)
+附註是使用visual studio2022開發。
