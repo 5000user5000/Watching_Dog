@@ -6,5 +6,19 @@
 GUI先開啟,並把你要監控的檔案夾路徑以及你的信箱輸入,按下send,當裡面的東西被改動會寄信給你。
 注意GUI只能寄出一次,第二次寄出service就不會讀取了。除非你先把Watching Dog Service關掉,並重新開GUI才行。
 
+3.0的部分
+在cmd打這指令會安裝服務
+
+~~~
+C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe   Watching_Dog.exe
+~~~
+
+解安裝
+~~~
+C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /u Watching_Dog.exe
+~~~
+
+注意要先cd到Watching_Dog.exe的路徑才行,不然就是執行檔得放在c槽user檔案夾中,還有有時候不一定會是v4.0.30319這版本的,所以去C:\WINDOWS\Microsoft.NET\Framework 看看各種版本中的檔案夾有無InstallUtil.exe,找有的並把指令換成你的版本
+
 [練習pipe用的來源網址](http://www.codebaoku.com/it-csharp/it-csharp-203094.html)
 附註是使用visual studio2022開發。
